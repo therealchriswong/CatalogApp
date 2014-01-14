@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="css/book-theme.css" rel="stylesheet" media="screen">
+	<title>Test</title>	
+</head>
+<body>
+  <h1>Instructions</h1>
+  <ul>
+  	<li>The json object included in javascript/data.js is an example output of our search API</li>
+  	<li>Using the example data and your enginuity create an "app" that can sort the json data in the following ways:
+  		<ol>
+  			<li>by Title then subtitle</li>
+  			<li>by Format</li>
+  			<li>by Availability</li>
+  		</ol>
+  	</li>
+    <li>A generic jacket cover image has been provided and should used in your final display.</li>
+  	<li>There should be mechanism that allows me to switch between the sort orders and redisplay the results.</li>
+  	<li>The sorted results should be displayed on screen in a readable fashion:
+  		<ul>
+  			<li>the title should link to the details_url.</li>
+  			<li>author names should be displayed as a comma separated list.</li>
+  			<li>format should be display using its name.</li>
+  			<li>Availability text should be displayed and should be colour coded according to it's value (green for available, red for unavailable, yellow for anything else.)</li>
+  			<li>Display as much of the information as possible.</li>
+  		</ul>
+  	</li>
+  	<li>Follow best practices for markup, css and js. Please don't use <a href="http://www.datatables.net/">jquery datatables plugin</a>, <a href="http://www.trirand.com/jqgridwiki/doku.php">jqGrid plugin</a> or similar plugins for this test.</li>
+    <li><strong><a href="example.html" title="No seriously, click this.">Click here</a></strong> to view a mock-up of the expected results.</li>
+  </ul>
+  <hr/>
+  
+  <p>Your Code Here&hellip;</p>
+  
+  <div class="container">
+    <!-- Sort by -->
+    
+    <form class="form-horizontal" role="form">
+      <div class="form-group">    
+        <label for="inputSortBy" class="col-sm-5 control-label">Sort by</label>
+        <div class="col-sm-2">
+          <select id="sortBy" class="form-control">
+            <option name="title">Title</option>
+            <option name="format">Format</option>
+            <option name="authors">Author</option>
+            <option name="availability">Availability</option>
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <!-- Content -->
+    <div class="content"></div>
+  </div>
+
+
+  <script src="javascript/data.js" type="text/javascript" charset="utf-8"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="bootstrap/js/bootstrap.min.js"></script>
+
+ 
+  <script>
+
+      $(document).ready( createTitles( "title" ) );
+
+      $("select").change(function() {
+
+        var property = $("#sortBy option:selected").attr("name");
+
+        createTitles( property );
+        
+      });
+
+      
+      function createTitles( property ){
+
+        var html = '';
+
+        sortedTitles = titles.sort( sortByProperty( property ));
+        
+        $.each( sortedTitles, function( index,  value ) {
+
+          html += '<div class="row">' +
+                  '<hr>' +
+                  '<div class="col-md-2">' +
+                    '<img src="icon-book.png" alt="icon-book" class="img-thumbnail">'+
+                  '</div>' +
+                  '<div class="col-md-10">'+
+                    '<div class="row">' +
+                      '<div class="col-md-10">' + getTitle( value ) + '</div>' +
+                      '<div class="col-md-10">' + getAuthors( value ) + '</div>' +
+                      '<div class="col-md-10">' + '(Format - ' + value.format.name + ')' + '</div>' +
+                      '<div class="col-md-10">' + getAvailability( value ) + '</div>' +
+                      '<div class="col-md-10">' + getSKU( value ) + '</div>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>';
+        });
+
+        $('.content').html(html);
+  
+      }
+
+      // Get the title
+      function getTitle( value ){
+          
+          var title = '';
+
+          if( value.hasOwnProperty('sub_title') ){
+            title = '<a href="'+ value.details_url +'">' + value.title + '</a>' + '<br>' + value.sub_title;
+          }
+          else {
+            title = '<a href="' + value.details_url +'">' + value.title + '</a>';
+          }
+
+          return title;
+      }
+
+      // Get authors
+      function getAuthors( value ){
+        var authors = '';
+
+        if( value.hasOwnProperty('authors') ){
+          authors += 'By ';
+          $.each( value.authors, function( index, author ) {
+            if( index < value.authors.length - 1 ){
+              authors += author.name + ', ';
+            }
+            else {
+              authors += author.name; 
+            }
+          });
+        }
+
+        return authors;
+      }
+    
+      // Get getAvailability 
+      function getAvailability( value ){
+        var availability = '';
+
+          if( value.hasOwnProperty('availability') ){
+            if( value.availability.id == 'AVAILABLE' ){
+              availability = '<span class="label label-success">' + value.availability.name + '</span>';
+            }
+            else if( value.availability.id == 'UNAVAILABLE' ){
+              availability = '<span class="label label-danger">' + value.availability.name + '</span>';
+            }
+            else{
+              availability = '<span class="label label-warning">' + value.availability.name + '</span>';
+            }
+          }
+
+          return availability;
+      }
+
+      // Get SKU
+      function getSKU( value ){
+        var sku = '';
+
+        if( value.hasOwnProperty('format') ){
+          if( value.format.id == 'DVD' && value.upcs != null ){
+            sku = 'UPCS ' + value.upcs;
+          }
+          else if( value.format.id == 'BK') {
+            sku = 'ISBNS ' + value.isbns;
+          }
+        }
+
+        return sku;
+      }
+      
+
+      function sortByProperty(property) {
+
+        return function( a, b ) {
+          
+          var item1 = '';
+          var item2 = '';
+          var sortStatus = 0;
+
+          if( property == "title" ){ 
+            if( a.hasOwnProperty( 'title' ) ){
+              item1 = a[property];
+            }
+            if( b.hasOwnProperty( 'title' ) ){
+              item2 = b[property];
+            }
+          } 
+          else if( property == "format" ){
+            if( a.hasOwnProperty( 'format' ) ){
+              item1 = a[property].name;
+            }
+            if( b.hasOwnProperty( 'format') ){
+              item2 = b[property].name;
+            }
+          }
+          else if( property == "authors" ){
+            if( a[property] != null && a.hasOwnProperty( 'authors' ) ){
+              item1 = a[property][0].name;
+            }
+            if( b[property] != null && b.hasOwnProperty( 'authors' ) ){
+              item2 = b[property][0].name;
+            }
+          }
+          else if( property == "availability" ){
+            if( a.hasOwnProperty( 'availability' ) ){
+              item1 = a[property].name;
+            }
+            if( b.hasOwnProperty( 'availability' ) ){
+              item2 = b[property].name;
+            }
+          }
+
+          if( item1 < item2 ){
+            sortStatus = -1;
+          }
+          else if( item1 > item2 ){
+            sortStatus = 1;
+          }
+          return sortStatus;
+        }
+      }
+ 
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+/* Custom page CSS
+-------------------------------------------------- */
+
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+.content {
+  width: auto;
+  max-width: 680px;
+  padding: 0 15px;
+}
+.content .text-muted {
+  margin: 20px 0;
+}
+
+#sortBy {
+  width: 100%;
+}
